@@ -17,6 +17,7 @@
     - ntp
     - bzip2
     - iptables-services
+    - sudo
 
 - name: stop cloud-init managing /etc/hosts
   lineinfile:
@@ -45,3 +46,6 @@
     - systemctl enable ip6tables
     - systemctl start iptables
     - systemctl start ip6tables
+
+- name: disable tty
+  command: sed -i -e 's/Defaults    requiretty.*/ #Defaults    requiretty/g' /etc/sudoers
