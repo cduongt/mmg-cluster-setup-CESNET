@@ -1,0 +1,143 @@
+# Ansible generated inventory. Will be overwritten by provision.yml
+
+[OSEv3:vars]
+ansible_ssh_user=cloud-user
+
+# set openstack-ansible install type and version
+containerized={{ oso_install_containerized | default(false) }}
+deployment_type=origin
+{% if oso_release is defined %}
+openshift_release={{ oso_release }}
+{% endif %}
+{% if oso_image_tag is defined %}
+openshift_image_tag={{ oso_image_tag }}
+{% endif %}
+
+
+# move the internal DNS away from port 53, where we have dnsmasq for cluster DNS
+openshift_master_dns_port=8053
+
+{% if master.num_vms > 1 %}
+# clustered installation
+openshift_master_cluster_method=native
+openshift_master_cluster_hostname={{ groups['lb'][0] }}
+openshift_master_cluster_public_hostname={{ openshift_public_hostname }}
+{% else %}
+# single "master runs all the bells and whistles" installation
+openshift_public_hostname={{ openshift_public_hostname }}
+openshift_public_ip={{ openshift_public_ip }}
+openshift_master_api_url=https://{{ groups['master'][0] }}.novalocal:8443
+{% endif %}
+
+# use openshift's own dnsmasq
+openshift_use_dnsmasq=false
+
+# set authentication to htpasswd and provide a htpasswd file
+openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider', 'filename': '/etc/origin/master/htpasswd'}]
+
+{% if openshift_master_htpasswd_file is defined %}
+openshift_master_htpasswd_file={{ openshift_master_htpasswd_file }}
+{% endif %}
+
+# as a guess, set the default subdomain to openshift_public_hostname
+osm_default_subdomain={{ openshift_public_hostname }}
+
+# deploy the router on a node with external IP
+{% if master.num_vms > 1 %}
+openshift_hosted_router_selector='region=network'
+{% else %}
+openshift_hosted_router_selector='region=infra'
+{% endif %}
+
+# if the wildcard cert is defined, set it for api and router
+# note the difference with singular and plural
+{% if certificate_crt is defined %}
+openshift_master_named_certificates=[{'certfile': '{{ certificate_crt }}', 'keyfile': '{{ certificate_key }}', 'cafile': '{{ certificate_ca }}', 'names': ['{{ openshift_public_hostname }}'] }]
+openshift_master_overwrite_named_certificates=true
+openshift_hosted_router_certificate={'certfile': '{{ certificate_crt }}', 'keyfile': '{{ certificate_key }}', 'cafile': '{{ certificate_ca }}' }
+{% endif %}
+
+[OSEv3:children]
+masters
+nodes
+{% if master.num_vms > 1 %}
+etcd
+lb
+{% endif %}
+
+[masters:vars]
+vm_group_name=master
+pv_vg_data=vg_data
+
+[masters]
+{% for master in groups['master'] %}
+{{ master }} ansible_ssh_host={{ hostvars[master]['ansible_ssh_host'] }}
+{% endfor %}
+
+# we compose [nodes] from (potentially heterogeneous) child groups
+[nodes]
+
+[nodes:children]
+node_masters
+{% if master.num_vms > 1 %}
+node_lbs
+{% endif %}
+{% for group_name in vars['node_groups'] %}
+{{ group_name }}
+{% endfor %}
+
+[node_masters]
+{% for vm in groups['master'] %}
+{{ vm }} ansible_ssh_host={{ hostvars[vm]['ansible_ssh_host'] }} openshift_node_labels="{'region': 'infra'}"
+{% endfor %}
+
+{% if master.num_vms > 1 %}
+[node_lbs:vars]
+vm_group_name=lb
+openshift_node_labels="{'region': 'network'}"
+pv_vg_data=vg_data
+
+[node_lbs]
+{% for vm in groups['lb'] %}
+{{ vm }} ansible_ssh_host={{ hostvars[vm]['ansible_ssh_host'] }}
+{% endfor %}
+{% endif %}
+
+{% for group_name in vars['node_groups'] %}
+[{{ group_name }}:vars]
+openshift_node_labels="{'region': 'default', 'type': '{{ group_name }}' }"
+pv_vg_data=vg_data
+vm_group_name={{ group_name }}
+
+[{{ group_name }}]
+{% for vm in groups[group_name] %}
+{{ vm }} ansible_ssh_host={{ hostvars[vm]['ansible_ssh_host'] }}
+{% endfor %}
+{% endfor %}
+
+[nfsservers:vars]
+vm_group_name=nfs
+pv_vg_pvol=vg_pvol
+
+[nfsservers]
+{% if master.num_vms > 1 or nfs is defined %}
+{{ groups['nfs'][0] }} ansible_ssh_host={{ hostvars[groups['nfs'][0]]['ansible_ssh_host'] }}
+{% else %}
+{{ groups['master'][0] }} ansible_ssh_host={{ hostvars[groups['master'][0]]['ansible_ssh_host'] }}
+{% endif %}
+
+{% if master.num_vms > 1 %}
+[etcd]
+{% for vm in groups['etcd'] %}
+{{ vm }} ansible_ssh_host={{ hostvars[vm]['ansible_ssh_host'] }}
+{% endfor %}
+
+[lb:vars]
+# https://bugzilla.redhat.com/show_bug.cgi?id=1298787
+# containerized=false
+
+[lb]
+{% for vm in groups['lb'] %}
+{{ vm }} ansible_ssh_host={{ hostvars[vm]['ansible_ssh_host'] }}
+{% endfor %}
+{% endif %}

@@ -1,0 +1,59 @@
+- name: Destroy a cluster deployed by cluster.yml
+  hosts: localhost
+  connection: local
+  tasks:
+    - set_fact: remove_vms={{ remove_lbs|default(False) }}
+    - set_fact: remove_volumes={{ remove_lb_volumes|default(False) }}
+    - name: remove lbs VMs
+      include: tasks/vm_group_deprovision.yml
+      with_items:
+        - lb
+      loop_control:
+        loop_var: "vm_group_name"
+      when: lb is defined
+
+    - set_fact: remove_vms={{ remove_nodes|default(False) }}
+    - set_fact: remove_volumes={{ remove_node_volumes|default(False) }}
+    - name: remove node VMs
+      include: tasks/vm_group_deprovision.yml
+      with_items: "{{ node_groups }}"
+      loop_control:
+        loop_var: "vm_group_name"
+
+    - set_fact: remove_vms={{ remove_masters|default(False) }}
+    - set_fact: remove_volumes={{ remove_master_volumes|default(False) }}
+    - name: remove master VM
+      include: tasks/vm_group_deprovision.yml
+      with_items:
+        - master
+      loop_control:
+        loop_var: "vm_group_name"
+
+    - set_fact: remove_vms={{ remove_etcd|default(False) }}
+    - set_fact: remove_volumes={{ remove_etcd_volumes|default(False) }}
+    - name: remove etcd VMs
+      include: tasks/vm_group_deprovision.yml
+      with_items:
+        - etcd
+      loop_control:
+        loop_var: "vm_group_name"
+      when: etcd is defined
+
+    - set_fact: remove_vms={{ remove_nfs|default(False) }}
+    - set_fact: remove_volumes={{ remove_nfs_volumes|default(False) }}
+    - name: remove nfs VMs
+      include: tasks/vm_group_deprovision.yml
+      with_items:
+        - nfs
+      loop_control:
+        loop_var: "vm_group_name"
+      when: nfs is defined
+
+    - name: remove security groups
+      os_security_group:
+        name: "{{ item }}"
+        state: absent
+      with_items:
+        - "{{ cluster_name }}-common"
+        - "{{ cluster_name }}-master"
+      when: remove_security_groups | default(False) | bool

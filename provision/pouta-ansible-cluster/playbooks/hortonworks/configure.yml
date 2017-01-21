@@ -1,0 +1,66 @@
+- name: Base installation
+  hosts:
+    - masters
+    - nodes
+  become: yes
+  roles:
+    - base
+
+- name: Configure common cluster
+  hosts:
+    - masters
+    - nodes
+  vars:
+    selinux_state: "disabled"
+  become: yes
+  roles:
+    - cluster_common
+
+- name: Volume data directory on HDP nodes
+  hosts:
+    - masters
+    - nodes
+  become: yes
+  roles:
+    - role: lvm_storage
+
+- name: Hortonworks common cluster setup
+  hosts:
+    - masters
+    - nodes
+  become: yes
+  roles:
+    - hortonworks_common
+
+- name: Configure master
+  hosts:
+    - masters
+  become: yes
+  roles:
+    - cluster_master
+    - nfs_server
+#    - ambari_server
+
+- name: Configure nodes
+  hosts:
+    - nodes
+  become: yes
+  roles:
+    - nfs_client
+
+#- name: Ambari agents
+#  hosts:
+#    - masters
+#    - nodes
+#  become: yes
+#  roles:
+#    - ambari_agents
+#
+#- name: Provision cluster in ambari using spark blueprint
+#  hosts:
+#    - localhost
+#  become: no
+#  vars:
+#    master_private_ip: "{{ hostvars[groups['masters'][0]]['ansible_ssh_host'] }}"
+#  roles:
+#    - ambari_blueprints

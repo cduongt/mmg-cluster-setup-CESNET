@@ -1,0 +1,20 @@
+---
+- name: create {{volume_spec.name }} volumes for {{ vm_group_name }} VMs
+  os_volume:
+    display_name: "{{ cluster_name }}-{{ vm_group_name }}-{{ item }}-{{ volume_spec.name }}"
+    size: "{{ volume_spec.size }}"
+    state: present
+    wait: yes
+  with_sequence: count={{ vm_group.num_vms|default(1) }}
+  async: 300
+  register: async_volume_create
+  when: "{{ volume_spec.size }}|default(0) > 0"
+
+- name: check volume create status
+  async_status: jid={{ item.ansible_job_id }}
+  register: job_result
+  until: job_result.finished
+  delay: 2
+  retries: 150
+  with_items: "{{ async_volume_create.results }}"
+  when: "{{ volume_spec.size }}|default(0) > 0"

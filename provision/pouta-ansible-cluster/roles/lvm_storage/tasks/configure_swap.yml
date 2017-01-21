@@ -1,0 +1,24 @@
+- name: check for swap
+  shell: 'swapon -s | grep -E "^/"'
+  register: swap_configured
+  ignore_errors: yes
+
+- name: scan for swap on {{ lv_path }}
+  command: lvdisplay {{ lv_path }}
+  register: test_lv_swap
+  ignore_errors: yes
+
+- name: run mkswap on swap lv
+  command: mkswap {{ lv_path }}
+  when: swap_configured|failed
+
+- name: run swapon {{ lv_path }}
+  command: 'swapon {{ lv_path }}'
+  when: swap_configured|failed
+
+- name: write swap entry in fstab
+  mount:
+    name: none
+    src: "{{ lv_path }}"
+    fstype: swap
+    state: present

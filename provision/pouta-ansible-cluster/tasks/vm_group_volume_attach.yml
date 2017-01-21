@@ -1,0 +1,17 @@
+- name: attach {{volume_spec.name }} volumes for {{ vm_group_name }} VMs
+  os_server_volume:
+    server: "{{ cluster_name }}-{{ vm_group_name }}-{{ item }}"
+    volume: "{{ cluster_name }}-{{ vm_group_name }}-{{ item }}-{{ volume_spec.name }}"
+  with_sequence: count={{ vm_group.num_vms|default(1) }}
+  async: 300
+  register: async_volume_attach
+  when: "{{ volume_spec.size }}|default(0) > 0"
+
+- name: check volume attach status
+  async_status: jid={{ item.ansible_job_id }}
+  register: job_result
+  until: job_result.finished
+  delay: 2
+  retries: 150
+  with_items: "{{ async_volume_attach.results }}"
+  when: "{{ volume_spec.size }}|default(0) > 0"

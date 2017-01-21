@@ -1,0 +1,7 @@
+# http://developerblog.redhat.com/2015/11/19/dns-your-openshift-v3-cluster/
+
+# Forward .local queries to SkyDNS
+server=/local/127.0.0.1#8053
+# Forward reverse queries for service network to SkyDNS.
+# This is for default OpenShift SDN - change as needed.
+server=/17.30.172.in-addr.arpa/127.0.0.1#8053

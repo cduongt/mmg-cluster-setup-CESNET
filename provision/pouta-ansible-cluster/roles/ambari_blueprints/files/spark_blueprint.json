@@ -1,0 +1,144 @@
+{
+  "configurations" : [
+    {
+      "yarn-site" : {
+          "yarn.scheduler.maximum-allocation-mb" : "16384"
+      }
+    }
+  ],
+  "host_groups" : [
+    {
+      "name" : "masters",
+      "components" : [
+        {
+          "name" : "NAMENODE"
+        },
+        {
+          "name" : "SECONDARY_NAMENODE"
+        },
+        {
+          "name" : "HISTORYSERVER"
+        },
+        {
+          "name" : "ZOOKEEPER_SERVER"
+        },
+        {
+          "name" : "AMBARI_SERVER"
+        },
+        {
+          "name" : "SPARK_JOBHISTORYSERVER"
+        },
+        {
+          "name" : "APP_TIMELINE_SERVER"
+        },
+        {
+          "name" : "METRICS_COLLECTOR"
+        },
+        {
+          "name" : "RESOURCEMANAGER"
+        },
+        {
+          "name" : "MAPREDUCE2_CLIENT"
+        },
+        {
+          "name" : "SPARK_CLIENT"
+        },
+        {
+          "name" : "YARN_CLIENT"
+        },
+        {
+          "name" : "HDFS_CLIENT"
+        },
+        {
+          "name" : "METRICS_MONITOR"
+        },
+        {
+          "name" : "ZOOKEEPER_CLIENT"
+        }
+      ],
+      "cardinality" : "1"
+    },
+    {
+      "name" : "slaves-ssd",
+      "components" : [
+        {
+          "name" : "DATANODE"
+        },
+        {
+          "name" : "NODEMANAGER"
+        },
+        {
+          "name" : "METRICS_MONITOR"
+        }
+      ],
+      "configurations" : [
+        {
+          "hdfs-site" : {
+              "dfs.datanode.data.dir" : "[DISK]/hadoop/disk/hdfs/data,[SSD]/hadoop/ssd/hdfs/data"
+          }
+        },
+        {
+          "yarn-site" : {
+              "yarn.nodemanager.local-dirs" : "/hadoop/ssd/yarn/local"
+          }
+        }
+      ],
+      "cardinality" : "1+"
+    },
+    {
+      "name" : "slaves-disk",
+      "components" : [
+        {
+          "name" : "DATANODE"
+        },
+        {
+          "name" : "NODEMANAGER"
+        },
+        {
+          "name" : "METRICS_MONITOR"
+        }
+      ],
+      "configurations" : [
+        {
+          "hdfs-site" : {
+              "dfs.datanode.data.dir" : "[DISK]/hadoop/disk/hdfs/data"
+          }
+        },
+        {
+          "yarn-site" : {
+              "yarn.nodemanager.local-dirs" : "/hadoop/scratch/yarn/local"
+          }
+        }
+      ],
+      "cardinality" : "1+"
+    },
+    {
+      "name" : "slaves-archive",
+      "components" : [
+        {
+          "name" : "DATANODE"
+        },
+        {
+          "name" : "METRICS_MONITOR"
+        }
+      ],
+      "configurations" : [
+        {
+          "hdfs-site" : {
+              "dfs.datanode.data.dir" : "[ARCHIVE]/hadoop/archive/hdfs/data"
+          }
+        },
+        {
+          "yarn-site" : {
+              "yarn.nodemanager.local-dirs" : "/hadoop/scratch/yarn/local"
+          }
+        }
+      ],
+      "cardinality" : "1+"
+    }
+  ],
+  "Blueprints" : {
+    "stack_name" : "HDP",
+    "stack_version" : "2.3"
+  }
+}

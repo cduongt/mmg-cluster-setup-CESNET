@@ -1,0 +1,18 @@
+name: {{ cluster_name }}-status
+
+windows:
+  - masters-dstat:
+      layout: even-vertical
+      panes:
+{% for host in groups['masters'] %}
+        - ssh -l cloud-user -t {{ hostvars[host]['ansible_ssh_host'] }} dstat -tarfsm -C total -N total 60
+{% endfor %}
+
+{% for group_name in vars['node_groups'] %}
+  - {{ group_name }}-nodes-dstat:
+      layout: even-vertical
+      panes:
+{% for host in groups[group_name] %}
+        - ssh -l cloud-user -t {{ hostvars[host]['ansible_ssh_host'] }} dstat -tarfsm -C total -N total 60
+{% endfor %}
+{% endfor %}

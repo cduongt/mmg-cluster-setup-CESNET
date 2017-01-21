@@ -1,0 +1,72 @@
+cluster_name: "my-oso"
+ssh_key: "bastion-key"
+bastion_secgroup: "bastion"
+
+# Definition for master node(s)
+master:
+  num_vms: 1
+  auto_ip: no
+  flavor: "standard.small"
+
+  # Here we list the block devices. A LVM volume group is created per device.
+  volumes:
+    - name: data
+      size: 200
+      pv_path: /dev/vdb
+
+    - name: pvol
+      size: 1000
+      pv_path: /dev/vdc
+
+  # Here we assign the volume groups from above to actual use
+  filesystems:
+    - name: swap
+      volume: data
+      size: "4G"
+      fstype: swap
+
+    - name: os_local
+      volume: data
+      size: "50%VG"
+      fstype: xfs
+      mount_point: /var/lib/origin/openshift.local.volumes
+
+# List of active node groups. You can have more defined, only those
+# that are listed here are actually used.
+node_groups:
+  - std
+
+std:
+  flavor: standard.large
+  num_vms: 4
+  volumes:
+    - name: data
+      size: 300
+      pv_path: "/dev/vdb"
+
+  filesystems:
+    - name: swap
+      volume: data
+      size: "2%VG"
+      fstype: swap
+
+# OpenShift installer input
+oso_install_containerized: false
+# if you use containerized install, this has to be set.
+# See https://hub.docker.com/r/openshift/origin/tags/
+#oso_image_tag: v1.3.0-alpha.3
+
+#oso_release: latest
+
+openshift_public_hostname: "your.master.hostname.here"
+openshift_public_ip: "your.master.ip.here"
+
+project_external_ips: ["your.master.ip.here"]
+
+# if you have wildcard certificates, use these
+#certificate_crt: 'path/to/your/certificate.crt'
+#certificate_key: 'path/to/your/certificate.key'
+#certificate_ca: 'path/to/your/CA_certificate.crt'
+
+# if you wish to prepopulate htpasswd, use this
+# openshift_master_htpasswd_file: "path/to/your/htpasswd"

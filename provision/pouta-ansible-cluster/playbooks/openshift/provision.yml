@@ -1,0 +1,142 @@
+---
+- name: Deploy base infra for OpenShift Origin in cPouta
+  hosts: localhost
+  connection: local
+  vars:
+    cluster_name: "my-oso"
+    ssh_key: "my_key"
+    network_name: ""
+    network_cidr: "192.168.1.0/24"
+    boot_from_volume: no
+    bastion_secgroup: "bastion"
+  tasks:
+    - name: create network
+      register: network_facts
+      os_network:
+        name: "{{ network_name }}"
+        state: present
+      when: network_name|default("") != ""
+
+    - name: create subnet
+      os_subnet:
+        network_name: "{{ network_name }}"
+        name: "{{ network_name }}-subnet-1"
+        cidr: "{{ network_cidr }}"
+        dns_nameservers:
+         - 193.166.4.24
+         - 193.166.4.25
+      when: network_name|default("") != ""
+
+    - name: bastion security group - create
+      register: sg_bastion
+      os_security_group:
+        name: "{{ bastion_secgroup }}"
+        description: "Ansible generated security group for bastion"
+
+    - name: master SG - create
+      os_security_group:
+        name: "{{ cluster_name }}-master"
+        description: "Ansible generated security group for {{ cluster_name }} masters"
+
+    - name: common SG - create
+      register: sg_common
+      os_security_group:
+        name: "{{ cluster_name }}-common"
+        description: "Ansible generated common security group for {{ cluster_name }}"
+
+    # remote_group workaround for https://github.com/ansible/ansible-modules-core/issues/2855
+    - name: common SG - open cluster internal access
+      os_security_group_rule:
+        security_group: "{{ cluster_name }}-common"
+        remote_group: "{{ item }}"
+      with_items:
+        - ["{{ sg_common.secgroup.id }}", "{{ sg_bastion.secgroup.id }}" ]
+
+    - name: open access from project router (NAT) and external ip
+      os_security_group_rule:
+        security_group: "{{ cluster_name }}-master"
+        protocol: tcp
+        port_range_min: 8443
+        port_range_max: 8443
+        remote_ip_prefix: "{{ item }}/32"
+      with_items: "{{ project_external_ips }}"
+      when: project_external_ips is defined
+
+    - name: provision master VMs
+      include: tasks/vm_group_provision.yml
+      vars:
+        security_groups: ["{{ cluster_name }}-master", "{{ cluster_name }}-common"]
+        server_group: master
+      with_items:
+        - "master"
+      loop_control:
+        loop_var: "vm_group_name"
+
+    - name: single master public ip
+      os_floating_ip:
+        server: "{{ cluster_name }}-master-1"
+        floating_ip_address: "{{ openshift_public_ip }}"
+      when: master.num_vms == 1
+
+    - name: provision etcd VMs
+      include: tasks/vm_group_provision.yml
+      with_items:
+        - "etcd"
+      loop_control:
+        loop_var: "vm_group_name"
+      when: etcd is defined
+
+    - name: provision lb VMs
+      include: tasks/vm_group_provision.yml
+      vars:
+        security_groups: ["{{ cluster_name }}-master", "{{ cluster_name }}-common"]
+      with_items:
+        - "lb"
+      loop_control:
+        loop_var: "vm_group_name"
+      when: lb is defined
+
+    - os_floating_ip:
+        server: "{{ cluster_name }}-lb-1"
+        floating_ip_address: "{{ openshift_public_ip }}"
+      when: master.num_vms > 1
+
+    - name: provision nfs VMs
+      include: tasks/vm_group_provision.yml
+      with_items:
+        - "nfs"
+      loop_control:
+        loop_var: "vm_group_name"
+      when: nfs is defined
+
+    - name: master SG - open access to the master itself
+      os_security_group_rule:
+        security_group: "{{ cluster_name }}-master"
+        protocol: tcp
+        port_range_min: "{{ item }}"
+        port_range_max: "{{ item }}"
+        remote_ip_prefix: "{{ openshift_public_ip }}/32"
+      with_items:
+        - [22, 80, 443, 8443]
+
+    - name: provision nodes
+      include: tasks/vm_group_provision.yml
+      vars:
+        inventory_group: "nodes"
+        server_group: "nodes"
+      with_items: "{{ node_groups }}"
+      loop_control:
+        loop_var: "vm_group_name"
+
+- name: Generate inventory and tmuxinator config
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: create inventory on disk
+      template:
+        src: templates/openshift-inventory.j2
+        dest: ./openshift-inventory
+        backup: yes
+
+    - name: create tmuxinator status session config
+      include: tasks/create_tmuxinator_config.yml

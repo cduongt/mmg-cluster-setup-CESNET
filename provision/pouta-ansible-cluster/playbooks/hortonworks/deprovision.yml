@@ -1,0 +1,29 @@
+- name: Destroy a cluster deployed by provision.yml
+  hosts: localhost
+  connection: local
+  tasks:
+    - set_fact: remove_vms={{ remove_nodes|default(False) }}
+    - set_fact: remove_volumes={{ remove_node_volumes|default(False) }}
+    - name: remove nodes
+      include: tasks/vm_group_deprovision.yml
+      with_items: "{{ node_groups }}"
+      loop_control:
+        loop_var: "vm_group_name"
+
+    - set_fact: remove_vms={{ remove_masters|default(False) }}
+    - set_fact: remove_volumes={{ remove_master_volumes|default(False) }}
+    - name: remove master VM
+      include: tasks/vm_group_deprovision.yml
+      with_items:
+        - master
+      loop_control:
+        loop_var: "vm_group_name"
+
+    - name: remove security groups
+      os_security_group:
+        name: "{{ item }}"
+        state: absent
+      with_items:
+        - "{{ cluster_name }}-common"
+        - "{{ cluster_name }}-master"
+      when: remove_security_groups | default(False) | bool

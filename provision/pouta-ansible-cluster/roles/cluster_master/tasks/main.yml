@@ -1,0 +1,43 @@
+---
+- name: add entries to /etc/hosts for all cluster members
+  lineinfile:
+    state: present
+    dest: /etc/hosts
+    line: "{{ hostvars[item]['ansible_ssh_host'] }} {{ item }} {{ item }}"
+  when: "{{ hostvars[item]['ansible_ssh_host'] is defined }}"
+  with_items: "{{ groups['all'] }}"
+#  notify: restart_dnsmasq
+
+- name: install pdsh
+  yum: name=pdsh state=present
+
+# http://developerblog.redhat.com/2015/11/19/dns-your-openshift-v3-cluster/
+#- name: install dnsmasq
+#  yum: name=dnsmasq state=present
+
+#- name: enable and run dnsmasq service
+#  service:
+#    name: dnsmasq
+#    enabled: yes
+#    state: started
+
+#- name: open ports 53 for DNS
+#  lineinfile:
+#    line: "-A INPUT -p udp -m udp --dport 53 -j ACCEPT"
+#    dest: /etc/sysconfig/iptables
+#    insertbefore: '^-A INPUT'
+
+- name: open port 2049 for NFS tcp
+  lineinfile:
+    line: "-A INPUT -p tcp -m tcp --dport 2049 -j ACCEPT"
+    dest: /etc/sysconfig/iptables
+    insertbefore: '^-A INPUT'
+
+- name: open port 2049 for NFS udp
+  lineinfile:
+    line: "-A INPUT -p udp -m udp --dport 2049 -j ACCEPT"
+    dest: /etc/sysconfig/iptables
+    insertbefore: '^-A INPUT'
+
+- name: restart iptables
+  command: service iptables restart

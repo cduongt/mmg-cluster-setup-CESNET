@@ -1,0 +1,9 @@
+---
+
+- name: remove {{volume_spec.name }} volumes for {{ vm_group_name }} VMs
+  os_volume:
+    display_name: "{{ cluster_name }}-{{ vm_group_name }}-{{ item }}-{{ volume_spec.name }}"
+    state: absent
+    wait: no
+  with_sequence: count={{ vm_group.num_vms|default(1) }}
+  when: "{{ volume_spec.size }}|default(0) > 0"

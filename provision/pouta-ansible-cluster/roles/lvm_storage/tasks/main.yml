@@ -1,0 +1,14 @@
+- set_fact: volume_specs={{ vars[vm_group_name].volumes|default([]) }}
+- set_fact: filesystem_specs={{ vars[vm_group_name].filesystems|default([]) }}
+
+- name: configure volume
+  include: configure_volume.yml
+  with_items: "{{ volume_specs }}"
+  loop_control:
+    loop_var: "volume_spec"
+
+- name: configure filesystems
+  include: configure_filesystem.yml
+  with_items: "{{ filesystem_specs }}"
+  loop_control:
+    loop_var: "filesystem_spec"

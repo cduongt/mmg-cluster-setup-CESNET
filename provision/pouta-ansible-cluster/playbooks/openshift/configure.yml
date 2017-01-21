@@ -1,0 +1,39 @@
+- name: Configure cluster common parts
+  hosts:
+    - masters
+    - nodes
+    - etcd
+    - lbs
+    - nfsservers
+  become: yes
+  roles:
+    - base
+    - cluster_common
+
+- name: Configure openshift VMs
+  hosts:
+    - masters
+    - nodes
+    - lbs
+  become: yes
+  roles:
+    - role: lvm_storage
+
+    - role: docker_host
+      docker_lvol_size: "50%FREE"
+      docker_lvol_vg_name: "vg_data"
+
+- name: Configure openshift masters
+  hosts:
+    - masters
+  become: yes
+  roles:
+    - cluster_master
+    - openshift_master
+
+- name: Configure nfs server
+  hosts:
+    - nfsservers
+  become: yes
+  roles:
+    - role: lvm_storage

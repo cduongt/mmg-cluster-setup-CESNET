@@ -1,0 +1,43 @@
+- set_fact: vg_name=vg_{{ filesystem_spec.volume }}
+
+- set_fact: lv_name=lv_{{ filesystem_spec.name }}
+
+- set_fact: lv_path="/dev/{{ vg_name }}/{{ lv_name }}"
+
+- set_fact: is_swap="{{ filesystem_spec.fstype|default('') == 'swap' }}"
+
+- stat: path=lv_path
+  register: stat_lv_path
+
+- name: create logical volume for {{ vg_name }}/{{ lv_name }}
+  lvol:
+    vg: "{{ vg_name }}"
+    lv: "{{ lv_name }}"
+    size: "{{ filesystem_spec.size|default('99%VG') }}"
+  when: stat_lv_path.stat.exists == False
+
+- name: make sure {{ filesystem_spec.name }} mount path exists
+  file:
+    path: "{{ filesystem_spec.mount_path }}"
+    state: directory
+  when: filesystem_spec.mount_path is defined
+
+- name: format {{ filesystem_spec.name }}
+  filesystem:
+    fstype: "{{ filesystem_spec.fstype }}"
+    dev: "{{ lv_path }}"
+    opts: "-L {{ filesystem_spec.name }} {{ filesystem_spec.mkfs_opts|default('') }}"
+  when: not is_swap
+
+- name: mount {{ filesystem_spec.name }}
+  mount:
+    name: "{{ filesystem_spec.mount_path }}"
+    src: "LABEL={{ filesystem_spec.name }}"
+    fstype: "{{ filesystem_spec.fstype }}"
+    opts: "{{ filesystem_spec.mount_opts|default('defaults,rw') }}"
+    state: mounted
+  when: filesystem_spec.mount_path is defined
+
+- name: configure swap
+  include: configure_swap.yml
+  when: is_swap

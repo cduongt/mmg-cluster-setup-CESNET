@@ -1,0 +1,21 @@
+- name: Wait for ssh to become available
+  hosts:
+    - all
+  gather_facts: false
+  any_errors_fatal: true
+  tasks:
+    - name: wait for ssh daemon to start on all hosts
+      wait_for:
+        port: 22
+        host: "{{ ansible_ssh_host | default(inventory_hostname) }}"
+        search_regex: OpenSSH
+        timeout: 300
+      delegate_to: 127.0.0.1
+
+    - name: wait for ssh to work
+      shell: ssh -o PasswordAuthentication=no -q {{ ansible_ssh_user }}@{{ ansible_ssh_host }} 'echo success'
+      register: result
+      until: result.stdout.find('success') != -1
+      retries: 30
+      delay: 5
+      delegate_to: 127.0.0.1

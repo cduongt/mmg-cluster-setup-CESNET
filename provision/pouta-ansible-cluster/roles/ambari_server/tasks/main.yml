@@ -1,0 +1,36 @@
+- name: add ambari repository
+  get_url:
+    url: http://public-repo-1.hortonworks.com/ambari/centos7/2.x/updates/2.2.0.0/ambari.repo
+    dest: /etc/yum.repos.d/ambari.repo
+
+- name: install ambari-server
+  yum: name={{ item }}
+  with_items:
+    - ambari-server
+
+- name: create certificate dir
+  file:
+    dest: "/etc/ambari-server/ssl"
+    owner: root
+    group: root
+    mode: 0600
+    state: directory
+
+- name: create self-signed SSL cert
+  command: >
+    openssl req -new -nodes -x509
+    -subj "/C=FI/ST=SouthernFinland/L=Espoo/O=IT/CN={{ ansible_hostname }}"
+    -days 3650
+    -extensions v3_ca
+    -keyout /etc/ambari-server/ssl/server.key
+    -out /etc/ambari-server/ssl/server.crt
+    creates=/etc/ambari-server/ssl/server.crt
+  register: self_signed_cert
+
+- name: run ambari setup
+  shell: ambari-server setup -j /etc/alternatives/jre -s
+  args:
+    creates: /etc/ambari-server/conf/password.dat
+
+- name: start ambari service
+  service: name=ambari-server state=running enabled=yes

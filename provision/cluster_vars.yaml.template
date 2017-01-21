@@ -1,0 +1,103 @@
+ 
+# This aims to be a complete example of hortonworks playbook configuration capabilities
+cluster_name: tiukh
+network_name: dfasda
+ssh_key: hjkhj
+bastion_secgroup: hjkj
+
+# Definition for master node
+master:
+  inventory_group: masters
+  auto_ip: yes
+  flavor: khj
+  image: dfsdf
+  # Here we list the block devices. A LVM volume group is created per device.
+  volumes:
+    - name: metadata
+      size: 7867
+      pv_path: /dev/vdb
+    - name: nfs_share
+      size: 7864
+      pv_path: /dev/vdc
+  # Here we carve out filesystems and other block storage out of the volumes
+  filesystems:
+    - name: swap
+      volume: metadata
+      size: "2%VG"
+      fstype: swap
+    - name: hadoop
+      volume: metadata
+      mount_path: /hadoop
+      size: "97%VG"
+      fstype: xfs
+      mkfs_opts: ""
+    - name: nfs_share
+      volume: nfs_share
+      mount_path: "/export/share"
+      fstype: "btrfs"
+      mount_opts: "defaults,compress=lzo"
+
+# The groups are mapped to HDFS configuration groups by name:
+# ssd : SSD + DISK tiers. Temporary files on ssd.
+# disk : DISK tier.
+node_groups:
+  - disk
+  - ssd
+
+# Definition for a node with openstack volume
+# This is mapped to DISK storage tier in HDFS
+disk:
+  flavor: 6456yjh
+  image: fdsdf
+  num_vms: 0
+  # set server group id to a group with anti-affinity policy
+  #server_group_id:  replace-me-with-the-id
+  volumes:
+    - name: datavol
+      size: 6775
+      pv_path: "/dev/vdb"
+  filesystems:
+    - name: swap
+      volume: datavol
+      size: "2%VG"
+      fstype: swap
+    - name: hadoop_disk
+      volume: datavol
+      size: "97%VG"
+      mount_path: /hadoop/disk
+      fstype: xfs
+
+# Definition for a node with ssd + openstack volume.
+# This is mapped to SSD and DISK storage tiers in HDFS
+ssd:
+  flavor: io.jhm
+  image: fdsdf
+  num_vms: 0
+  # set server group id to a group with anti-affinity policy
+  #server_group_id:  replace-me-with-the-id
+  volumes:
+    # This is the ephemeral (scratch) disk for io-intensive flavors.
+    # Size is set to 0, thus the block device is not provisioned from openstack volume but
+    # assumed to be present and usable.
+    - name: ssd
+      size: 0
+      pv_path: "/dev/vdb"
+    - name: datavol
+      size: 999
+      pv_path: "/dev/vdc"
+  filesystems:
+    - name: hadoop_ssd
+      volume: ssd
+      size: "97%VG"
+      mount_path: /hadoop/ssd
+      fstype: xfs
+    - name: swap
+      volume: ssd
+      size: "2%VG"
+      fstype: swap
+    - name: hadoop_disk
+      volume: datavol
+      size: "99%VG"
+      mount_path: /hadoop/disk
+      fstype: xfs
+

@@ -1,0 +1,11 @@
+- name: install openjdk
+  yum: name={{ item }}
+  with_items:
+    - java-1.8.0-openjdk
+
+- name: fix jdk slow random source
+  lineinfile:
+    name: /etc/alternatives/jre/lib/security/java.security
+    regexp: '^securerandom.source.*'
+    line: 'securerandom.source=file:/dev/urandom'
+    state: present

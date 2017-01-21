@@ -1,0 +1,24 @@
+- set_fact: vg_name=vg_{{ volume_spec.name }}
+
+- set_fact: pv_path={{ volume_spec.pv_path }}
+
+- name: Scan for {{ vg_name }} volume group
+  command: vgdisplay {{ vg_name }}
+  register: test_vg
+  ignore_errors: yes
+  changed_when: false
+
+# in case the volumes were there, activate them in case they are reused from a previous incarnation
+# TODO: replace with lvol based activation available in ansible 2.2
+- name: activate lvs
+  command: vgchange -ay {{ vg_name }}
+  changed_when: false
+  when: test_vg.rc!=5
+
+- name: Create a physical volume on {{ pv_path }}
+  command: /usr/sbin/pvcreate -y {{ pv_path }}
+  when: test_vg.rc==5
+
+- name: Create volume group {{ vg_name }} on {{ pv_path }}
+  lvg: vg={{ vg_name }} pvs={{ pv_path }}
+  when: test_vg.rc==5

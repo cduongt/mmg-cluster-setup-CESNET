@@ -1,0 +1,36 @@
+resource "occi_virtual_machine" "master" {
+	image_template = "http://occi.carach5.ics.muni.cz/occi/infrastructure/os_tpl#uuid_egi_centos_7_fedcloud_warg_149"
+	resource_template = "http://fedcloud.egi.eu/occi/compute/flavour/1.0#large"
+	endpoint = "https://carach5.ics.muni.cz:11443"
+	name = "vm_cluster_master"
+	x509 = "/tmp/x509up_u1000"
+	init_file = "/home/cduongt/context"
+	storage_size = 200
+}
+
+resource "occi_virtual_machine" "node" {
+	image_template = "http://occi.carach5.ics.muni.cz/occi/infrastructure/os_tpl#uuid_egi_centos_7_fedcloud_warg_149"
+	resource_template = "http://fedcloud.egi.eu/occi/compute/flavour/1.0#small"
+	endpoint = "https://carach5.ics.muni.cz:11443"
+	name = "vm_cluster_node"
+	x509 = "/tmp/x509up_u1000"
+	init_file = "/home/cduongt/context"
+	count = 4
+	storage_size = 100
+}
+
+output "master_id" {
+	value = "${occi_virtual_machine.master.vm_id}"
+}
+
+output "master_ip" {
+	value = "${occi_virtual_machine.master.ip_address}"
+}
+
+output "node_id" {
+	value = "${join(",",occi_virtual_machine.node.*.vm_id)}"
+}
+
+output "node_ip" {
+	value = "${join(",",occi_virtual_machine.node.*.ip_address)}"
+}

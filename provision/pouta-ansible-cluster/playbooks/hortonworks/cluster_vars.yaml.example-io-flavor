@@ -1,0 +1,73 @@
+# See cluster_vars.yaml.example-complex for comments and explanations
+
+cluster_name: "my-spark"
+ssh_key: "bastion-key"
+bastion_secgroup: "bastion"
+
+master:
+  inventory_group: masters
+  auto_ip: yes
+  # floating_ip: 1.2.3.4
+  flavor: "standard.large"
+  volumes:
+    - name: metadata
+      size: 100
+      pv_path: /dev/vdb
+
+    - name: nfs_share
+      size: 100
+      pv_path: /dev/vdc
+
+  filesystems:
+    - name: swap
+      volume: metadata
+      size: "2%VG"
+      fstype: swap
+
+    - name: hadoop
+      volume: metadata
+      mount_path: /hadoop
+      size: "97%VG"
+      fstype: xfs
+      mkfs_opts: ""
+
+    - name: nfs_share
+      volume: nfs_share
+      mount_path: "/export/share"
+      fstype: "btrfs"
+      mount_opts: "defaults,compress=lzo"
+
+node_groups:
+  - ssd
+
+ssd:
+  flavor: io.700GB
+  num_vms: 8
+  # set server group id to a group with anti-affinity policy
+  #server_group_id:  replace-me-with-the-id
+  volumes:
+    - name: ssd
+      size: 0
+      pv_path: "/dev/vdb"
+
+    - name: datavol
+      size: 300
+      pv_path: "/dev/vdc"
+
+  filesystems:
+    - name: hadoop_ssd
+      volume: ssd
+      size: "97%VG"
+      mount_path: /hadoop/ssd
+      fstype: xfs
+
+    - name: swap
+      volume: ssd
+      size: "2%VG"
+      fstype: swap
+
+    - name: hadoop_disk
+      volume: datavol
+      size: "99%VG"
+      mount_path: /hadoop/disk
+      fstype: xfs

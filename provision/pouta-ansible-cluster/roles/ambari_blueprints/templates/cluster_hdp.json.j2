@@ -1,0 +1,42 @@
+{
+  "blueprint" : "spark-hdfs",
+  "default_password" : "spark",
+  "host_groups" :[
+    {
+      "name" : "masters",
+      "hosts" : [         
+{% for vm in groups['masters'] %}
+        {
+          "fqdn" : "{{ vm }}"
+        }
+{% if not loop.last %},{% endif %}
+{% endfor %}
+      ]
+    },
+
+{% for group_name in vars['node_groups'] %}
+    {
+      "name" : "slaves-{{ group_name }}",
+      "configurations": [
+        {
+          "yarn-site": {
+            "properties" : {
+              "yarn.nodemanager.resource.memory-mb" : "{{ (hostvars[groups[group_name][0]].ansible_memtotal_mb * 0.8) | int }}",
+              "yarn.nodemanager.resource.cpu-vcores" : "{{ hostvars[groups[group_name][0]].ansible_processor_vcpus }}"
+            }
+          }
+        }
+      ],
+      "hosts" : [
+{% for vm in groups[group_name] %}
+        {
+          "fqdn" : "{{ vm }}"
+        }
+{% if not loop.last %},{% endif %}
+{% endfor %}
+      ]
+    }
+{% if not loop.last %},{% endif %}
+{% endfor %}
+  ]
+}

@@ -1,0 +1,10 @@
+- name: nfs client
+  yum: pkg={{item}} state=present
+  with_items:
+    - nfs-utils
+
+- mount: name={{item}} src={{hostvars[groups['masters'][0]]['ansible_ssh_host']}}:{{item}} fstype=nfs state=mounted
+  with_items:
+    #- /home
+    - /data
+    - /export/share
