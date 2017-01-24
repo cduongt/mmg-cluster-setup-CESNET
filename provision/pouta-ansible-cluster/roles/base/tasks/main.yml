@@ -27,11 +27,17 @@
     line: 'manage_etc_hosts: False'
     create: yes
 
-- name: fix /etc/hosts after cloud-init
+- name: fix /etc/hosts after cloud-init IPv4
   lineinfile:
     dest: /etc/hosts
     state: absent
     regexp: "^127.0.0.1(.*){{ inventory_hostname }}(.*)"
+
+- name: fix /etc/hosts after cloud-init IPv6
+  lineinfile:
+    dest: /etc/hosts
+    state: absent
+    regexp: "^::1(.*){{ inventory_hostname }}(.*)"
 
 - name: disable firewalld
   command: "{{ item }}"
@@ -48,4 +54,4 @@
     - systemctl start ip6tables
 
 - name: disable tty
-  command: sed -i -e 's/Defaults    requiretty.*/ #Defaults    requiretty/g' /etc/sudoers
+  command: "sed -i -e 's/Defaults    requiretty.*/ #Defaults    requiretty/g' /etc/sudoers"

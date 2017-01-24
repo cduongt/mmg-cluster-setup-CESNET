@@ -39,5 +39,17 @@
     dest: /etc/sysconfig/iptables
     insertbefore: '^-A INPUT'
 
+- name: open port 8080 for web UI
+  lineinfile:
+    line: "-A INPUT -p tcp -m tcp --dport 8080 -j ACCEPT"
+    dest: /etc/sysconfig/iptables
+    insertbefore: '^-A INPUT'
+
+- name: open port 7077 for Spark
+  lineinfile:
+    line: "-A INPUT -p tcp -m tcp --dport 7077 -j ACCEPT"
+    dest: /etc/sysconfig/iptables
+    insertbefore: '^-A INPUT'
+
 - name: restart iptables
   command: service iptables restart
