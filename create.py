@@ -37,7 +37,7 @@ for item in node_ip:
 ansible_hosts.close()
 
 ###########################################
-########## Cluster vars file ##############
+########### Cluster vars file #############
 ###########################################
 
 cluster_vars = open('clustervars.yaml', 'w')
@@ -45,7 +45,7 @@ master_storage_size = (subprocess.check_output("terraform show | grep master_sto
 master_storage_size = master_storage_size.split("=", 2)[1].strip()
 node_storage_size = (subprocess.check_output("terraform show | grep node_storage_size", shell=True)).decode('ascii')
 node_storage_size = node_storage_size.split("=", 2)[1].strip()
-
+node_storage_size = re.sub('\x1b[^m]*m', '', node_storage_size)
 
 cluster_vars.write('cluster_name: "csc-cluster"\n\n')
 cluster_vars.write('master:\n')
@@ -94,3 +94,30 @@ cluster_vars.write('      mount_path: "/hadoop/disk"\n')
 cluster_vars.write('      fstype: xfs\n')
 
 cluster_vars.close()
+
+###########################################
+###############  Ansible  #################
+###########################################
+
+error = subprocess.call("ansible-playbook -v -e @clustervars.yaml -i ansible_inventory pouta-ansible-cluster/playbooks/hortonworks/configure.yml", shell=True)
+
+if error != 0:
+	sys.exit(error)
+
+###########################################
+##############  Copy files  ###############
+###########################################
+
+error = subprocess.call("scp -r -o StrictHostKeyChecking=no provision/ cloud-user@" + master_ip + ":/home/cloud-user", shell=True)
+
+if error != 0:
+	sys.exit(error)
+
+###########################################
+###############  Run Spark ################
+###########################################
+
+error = subprocess.call("ssh -o StrictHostKeyChecking=no cloud-user@" + master_ip + " . provision/_setup_cluster.sh", shell=True)
+
+if error != 0:
+	sys.exit(error)

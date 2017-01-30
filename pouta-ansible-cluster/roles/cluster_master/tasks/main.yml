@@ -51,5 +51,11 @@
     dest: /etc/sysconfig/iptables
     insertbefore: '^-A INPUT'
 
+- name: open port 6066 for REST server
+  lineinfile:
+    line: "-A INPUT -p tcp -m tcp --dport 6066 -j ACCEPT"
+    dest: /etc/sysconfig/iptables
+    insertbefore: '^-A INPUT'
+
 - name: restart iptables
   command: service iptables restart
