@@ -2,6 +2,7 @@
 import subprocess
 import sys
 import socket
+import re
 
 ###########################################
 #### Creating instances with Terraform ####
@@ -15,8 +16,7 @@ if error != 0:
 master_ip = (subprocess.check_output("terraform show | grep master_ip", shell=True)).decode('ascii')
 master_ip = master_ip.split("=", 2)[1].strip()
 node_ip = (subprocess.check_output("terraform show | grep node_ip", shell=True)).decode('ascii')
-node_ip = node_ip.split("=", 2)[1].strip().strip("\x1b[0m\n").split(",")
-
+node_ip = node_ip.split("=", 2)[1].strip().split(",")
 
 ###########################################
 ###########  Inventory file ###############
@@ -41,14 +41,56 @@ ansible_hosts.close()
 ###########################################
 
 cluster_vars = open('clustervars.yaml', 'w')
-terraform_config = open('mmg-cluster.tf', 'r')
+master_storage_size = (subprocess.check_output("terraform show | grep master_storage_size", shell=True)).decode('ascii')
+master_storage_size = master_storage_size.split("=", 2)[1].strip()
+node_storage_size = (subprocess.check_output("terraform show | grep node_storage_size", shell=True)).decode('ascii')
+node_storage_size = node_storage_size.split("=", 2)[1].strip()
+
 
 cluster_vars.write('cluster_name: "csc-cluster"\n\n')
 cluster_vars.write('master:\n')
 cluster_vars.write('  invetory_group: masters\n')
 cluster_vars.write('  auto_ip: yes\n')
-cluster_vars.write('  flavor: \n')
+#cluster_vars.write('  flavor: \n')
 cluster_vars.write('  volumes:\n')
 cluster_vars.write('    - name: metadata\n')
-cluster_vars.write('      size:\n')
+cluster_vars.write('      size: ' + master_storage_size + '\n')
 cluster_vars.write('      pv_path: /dev/vdc\n\n')
+cluster_vars.write('  filesystems:\n')
+cluster_vars.write('    - name: swap\n')
+cluster_vars.write('      volume: metadata\n')
+cluster_vars.write('      size: "2%VG"\n')
+cluster_vars.write('      fstype: swap\n\n')
+cluster_vars.write('    - name: hadoop\n')
+cluster_vars.write('      volume: metadata\n')
+cluster_vars.write('      mount_path: "/hadoop"\n')
+cluster_vars.write('      size: "47%VG"\n')
+cluster_vars.write('      fstype: xfs\n')
+cluster_vars.write('      mkfs_opts: ""\n\n')
+cluster_vars.write('    - name: nfs_share\n')
+cluster_vars.write('      volume: metadata\n')
+cluster_vars.write('      mount_path: "/export/share"\n')
+cluster_vars.write('      size: "50%VG"\n')
+cluster_vars.write('      fstype: "btrfs"\n')
+cluster_vars.write('      mount_opts: "defaults,compress=lzo"\n\n')
+cluster_vars.write('node_groups:\n')
+cluster_vars.write('  - disk\n\n')
+cluster_vars.write('disk:\n')
+#cluster_vars.write('  flavor:\n')
+cluster_vars.write('  num_vms: ' + str(len(node_ip)) + '\n')
+cluster_vars.write('  volumes:\n')
+cluster_vars.write('    - name: datavol\n')
+cluster_vars.write('      size: ' + node_storage_size + '\n')
+cluster_vars.write('      pv_path: "/dev/vdc"\n\n')
+cluster_vars.write('  filesystems:\n')
+cluster_vars.write('    - name: swap\n')
+cluster_vars.write('      volume: datavol\n')
+cluster_vars.write('      size: "2%VG"\n')
+cluster_vars.write('      fstype: swap\n\n')
+cluster_vars.write('    - name: hadoop_disk\n')
+cluster_vars.write('      volume: datavol\n')
+cluster_vars.write('      size: "97%VG"\n')
+cluster_vars.write('      mount_path: "/hadoop/disk"\n')
+cluster_vars.write('      fstype: xfs\n')
+
+cluster_vars.close()

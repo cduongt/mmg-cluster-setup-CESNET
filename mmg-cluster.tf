@@ -34,3 +34,11 @@ output "node_id" {
 output "node_ip" {
 	value = "${join(",",occi_virtual_machine.node.*.ip_address)}"
 }
+
+output "master_storage_size" {
+	value = "${occi_virtual_machine.master.storage_size}"
+}
+
+output "node_storage_size" {
+	value = "${occi_virtual_machine.node.0.storage_size}"
+}
