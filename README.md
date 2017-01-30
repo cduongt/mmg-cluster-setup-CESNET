@@ -5,10 +5,11 @@ Currently in development.
 
 Requirements:
 - Linux distribution, tested on Fedora 24
+- [rOCCI CLI](https://github.com/EGI-FCTF/rOCCI-cli)
 - X509 VOMS certificate
 - [contextualisation file](https://wiki.egi.eu/wiki/FAQ10_EGI_Federated_Cloud_User#Contextualisation)
 - Python 3
-- [Terraform](https://www.terraform.io/downloads.html) and [OCCI plugin](https://github.com/cduongt/terraform/tree/occi)
+- [Terraform](https://www.terraform.io/downloads.html) and [OCCI plugin](https://github.com/cduongt/terraform/tree/occi) (OCCI plugin binaries will be available soon)
 - Ansible
 
 File structure:
