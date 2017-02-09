@@ -18,6 +18,7 @@
     - bzip2
     - iptables-services
     - sudo
+    - wget
 
 - name: stop cloud-init managing /etc/hosts
   lineinfile:

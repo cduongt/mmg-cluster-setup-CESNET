@@ -27,21 +27,21 @@
 #    dest: /etc/sysconfig/iptables
 #    insertbefore: '^-A INPUT'
 
-- name: open port 2049 for NFS tcp
+- name: open ports for nodes
   lineinfile:
-    line: "-A INPUT -p tcp -m tcp --dport 2049 -j ACCEPT"
-    dest: /etc/sysconfig/iptables
-    insertbefore: '^-A INPUT'
-
-- name: open port 2049 for NFS udp
-  lineinfile:
-    line: "-A INPUT -p udp -m udp --dport 2049 -j ACCEPT"
+    line: "-A INPUT -s 147.228.242.0/24 -j ACCEPT"
     dest: /etc/sysconfig/iptables
     insertbefore: '^-A INPUT'
 
 - name: open port 8080 for web UI
   lineinfile:
     line: "-A INPUT -p tcp -m tcp --dport 8080 -j ACCEPT"
+    dest: /etc/sysconfig/iptables
+    insertbefore: '^-A INPUT'
+
+- name: open port 4040 for Metapipe UI
+  lineinfile:
+    line: "-A INPUT -p tcp -m tcp --dport 4040 -j ACCEPT"
     dest: /etc/sysconfig/iptables
     insertbefore: '^-A INPUT'
 
@@ -58,4 +58,4 @@
     insertbefore: '^-A INPUT'
 
 - name: restart iptables
-  command: service iptables restart
+  service: name=iptables state=restarted

@@ -5,7 +5,7 @@ resource "occi_virtual_machine" "master" {
 	name = "vm_cluster_master"
 	x509 = "/tmp/x509up_u1000"
 	init_file = "/home/cduongt/context"
-	storage_size = 200
+	storage_size = 500
 }
 
 resource "occi_virtual_machine" "node" {

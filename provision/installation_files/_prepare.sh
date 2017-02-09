@@ -1,22 +1,24 @@
 
-source _init.sh
+METAPIPE_DIR=/export/share
+SPARK_HOME=/export/share/spark-1.6.2-bin-hadoop2.6
+
 sudo chmod 777 $METAPIPE_DIR
 cd $METAPIPE_DIR
 
 DISK_NAME="$1"
 
 if [ "$2" != "skip-unpack" ]; then
-    sudo tar xvf /media/$DISK_NAME/sw-packed/metapipe-deps-current.tar.gz -C $METAPIPE_DIR --keep-old-files
+    sudo tar xvf metapipe-dependencies.tar.gz
     sudo mv package/dist .
     sudo mv dist metapipe
 fi
-sudo cp /media/$DISK_NAME/sw-packed/*.sh $METAPIPE_DIR
-sudo cp /media/$DISK_NAME/sw-packed/conf.json $METAPIPE_DIR
-sudo cp /media/$DISK_NAME/sw-packed/workflow-assembly-0.1-SNAPSHOT.jar $METAPIPE_DIR
+#sudo cp /media/$DISK_NAME/sw-packed/*.sh $METAPIPE_DIR
+#sudo cp /media/$DISK_NAME/sw-packed/conf.json $METAPIPE_DIR
+#sudo cp /media/$DISK_NAME/sw-packed/workflow-assembly-0.1-SNAPSHOT.jar $METAPIPE_DIR
 
 sudo mkdir $METAPIPE_DIR/.metapipe
 sudo mkdir $METAPIPE_DIR/metapipe-tmp
-sudo rm conf.json
+#sudo rm conf.json
 echo "{
   \"metapipeHome\": \"$METAPIPE_DIR/metapipe\",
   \"metapipeTemp\": \"$METAPIPE_DIR/metapipe-tmp\"

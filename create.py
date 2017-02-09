@@ -114,10 +114,38 @@ if error != 0:
 	sys.exit(error)
 
 ###########################################
-###############  Run Spark ################
+########## Setup Spark cluster ############
 ###########################################
 
-error = subprocess.call("ssh -o StrictHostKeyChecking=no cloud-user@" + master_ip + " . provision/_setup_cluster.sh", shell=True)
+error = subprocess.call("ssh -o StrictHostKeyChecking=no cloud-user@" + master_ip + " source provision/_setup_cluster.sh", shell=True)
+
+if error != 0:
+	sys.exit(error)
+
+###########################################
+######## Get metapipe dependencies ########
+###########################################
+
+error = subprocess.call("ssh -o StrictHostKeyChecking=no cloud-user@" + master_ip + " wget --progress=bar:force http://stoor124.meta.zcu.cz:15014/metapipe-dependencies.tar.gz -P /export/share", shell=True)
+
+if error != 0:
+	sys.exit(error)
+
+error = subprocess.call("ssh -o StrictHostKeyChecking=no cloud-user@" + master_ip + " wget --progress=bar:force http://stoor124.meta.zcu.cz:15014/workflow-assembly-0.1-SNAPSHOT.jar -P /export/share", shell=True)
+
+if error != 0:
+	sys.exit(error)
+
+###########################################
+############## Run Metapipe ###############
+###########################################
+
+error = subprocess.call("ssh -o StrictHostKeyChecking=no cloud-user@" + master_ip + " source provision/installation_files/_prepare.sh", shell=True)
+
+if error != 0:
+	sys.exit(error)
+
+error = subprocess.call("ssh -o StrictHostKeyChecking=no cloud-user@" + master_ip + " source provision/installation_files/_run.sh", shell=True)
 
 if error != 0:
 	sys.exit(error)

@@ -1,8 +1,8 @@
 
-
-source _init.sh
-
-start-all.sh
+METAPIPE_DIR=/export/share
+SPARK_HOME=/export/share/spark-1.6.2-bin-hadoop2.6
+export PATH=$PATH:$SPARK_HOME/bin:$SPARK_HOME/sbin
+. start-all.sh
 
 #$SPARK_HOME/bin/spark-submit \
 #    --master spark://$(hostname):7077 \
@@ -35,7 +35,7 @@ $SPARK_HOME/bin/spark-submit \
         execution-manager --executor-id test-executor --num-partitions 10000 \
         --config-file $METAPIPE_DIR/.metapipe/conf.json --job-tags csc-test
 
-stop-all.sh
+. stop-all.sh
 
 
 

@@ -52,7 +52,6 @@ fi
 
 cd $SW_DIR
 
-sudo yum install wget -y
 sudo wget -nv http://downloads.lightbend.com/scala/2.10.6/scala-2.10.6.tgz
 sudo tar xf scala-2.10.6.tgz
 scala -version
@@ -62,7 +61,7 @@ sudo wget -nv http://d3kbcqa49mib13.cloudfront.net/spark-1.6.2-bin-hadoop2.6.tgz
 sudo tar xf spark-1.6.2-bin-hadoop2.6.tgz
 sudo rm spark-1.6.2-bin-hadoop2.6.tgz
 
-sudo chmod 777 -R $SW_DIR/*
+sudo chmod 777 -R /export/*
 
 >| $SPARK_HOME/conf/slaves
 for name in "${WORKER_HOSTS[@]}"; do
