@@ -33,7 +33,7 @@ $SPARK_HOME/bin/spark-submit \
     $SPARK_CONF \
     $METAPIPE_DIR/workflow-assembly-0.1-SNAPSHOT.jar \
         execution-manager --executor-id test-executor --num-partitions 10000 \
-        --config-file $METAPIPE_DIR/.metapipe/conf.json --job-tags csc-test
+        --config-file $METAPIPE_DIR/.metapipe/conf.json --job-tags cesnet
 
 . stop-all.sh
 

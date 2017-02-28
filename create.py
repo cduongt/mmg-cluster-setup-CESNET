@@ -40,7 +40,7 @@ ansible_hosts.close()
 ########### Cluster vars file #############
 ###########################################
 
-cluster_vars = open('clustervars.yaml', 'w')
+cluster_vars = open('cluster_vars.yaml', 'w')
 master_storage_size = (subprocess.check_output("terraform show | grep master_storage_size", shell=True)).decode('ascii')
 master_storage_size = master_storage_size.split("=", 2)[1].strip()
 node_storage_size = (subprocess.check_output("terraform show | grep node_storage_size", shell=True)).decode('ascii')
@@ -99,7 +99,7 @@ cluster_vars.close()
 ###############  Ansible  #################
 ###########################################
 
-error = subprocess.call("ansible-playbook -v -e @clustervars.yaml -i ansible_inventory pouta-ansible-cluster/playbooks/hortonworks/configure.yml", shell=True)
+error = subprocess.call("ansible-playbook -v -e @cluster_vars.yaml -i ansible_inventory pouta-ansible-cluster/playbooks/hortonworks/configure.yml", shell=True)
 
 if error != 0:
 	sys.exit(error)

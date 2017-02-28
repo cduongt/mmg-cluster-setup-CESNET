@@ -10,13 +10,13 @@ resource "occi_virtual_machine" "master" {
 
 resource "occi_virtual_machine" "node" {
 	image_template = "http://occi.carach5.ics.muni.cz/occi/infrastructure/os_tpl#uuid_egi_centos_7_fedcloud_warg_149"
-	resource_template = "http://fedcloud.egi.eu/occi/compute/flavour/1.0#small"
+	resource_template = "http://fedcloud.egi.eu/occi/compute/flavour/1.0#large"
 	endpoint = "https://carach5.ics.muni.cz:11443"
 	name = "vm_cluster_node"
 	x509 = "/tmp/x509up_u1000"
 	init_file = "/home/cduongt/context"
 	count = 4
-	storage_size = 100
+	storage_size = 300
 }
 
 output "master_id" {

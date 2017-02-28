@@ -1,0 +1,7 @@
+# Terraform state files #
+*.tfstate
+*.backup
+
+# Created files
+cluster_vars.yaml
+ansible_inventory
