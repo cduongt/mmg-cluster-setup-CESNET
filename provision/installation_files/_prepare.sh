@@ -1,6 +1,4 @@
-
-METAPIPE_DIR=/export/share
-SPARK_HOME=/export/share/spark-1.6.2-bin-hadoop2.6
+source ~/provision/_init.sh
 
 sudo chmod 777 $METAPIPE_DIR
 cd $METAPIPE_DIR
@@ -30,12 +28,36 @@ sudo chmod 777 -R $METAPIPE_DIR
 sudo rm /home/cloud-user/.metapipe
 sudo ln -s $METAPIPE_DIR/.metapipe /home/cloud-user/
 
-# Temporary solution for missing Perl module Data/Dumper.pm
+# Temporary solution for missing Perl module Data/Dumper.pm and Digest::MD5
 sudo yum -y install perl-CPAN
+sudo yum -y install perl-Digest-MD5
+curl -L https://cpanmin.us | perl - --sudo App::cpanminus
+cpanm Digest::MD5
 for name in "${WORKER_HOSTS[@]}"; do
     echo "$name"
-    ssh -n -o StrictHostKeyChecking=no cloud-user@$name "sudo yum -y install perl-CPAN"
+    ssh -t -o StrictHostKeyChecking=no cloud-user@$name '
+    sudo yum -y install perl-CPAN
+    sudo yum -y install perl-Digest-MD5
+    curl -L https://cpanmin.us | perl - --sudo App::cpanminus
+    cpanm Digest::MD5
+    '
 done
+
+# Temporary solution for Priam that crashes during the first job run
+sudo mkdir $METAPIPE_DIR/metapipe/databases/priam/PRIAM_MAR15/PROFILES/LIBRARY
+cd $METAPIPE_DIR/metapipe/databases/priam/PRIAM_MAR15/PROFILES
+sudo chmod 777 -R .
+unset FILELIST
+declare -a FILELIST
+for f in *; do
+    if [ "$(echo "$f")" != "LIBRARY" ]; then
+        FILELIST[${#FILELIST[@]}+1]="../"$(echo "$f");
+    fi
+done
+printf "%s\n" "${FILELIST[@]}" > LIBRARY/profiles.list
+cd LIBRARY
+$METAPIPE_DIR/metapipe/tools/blast-legacy/bin/formatrpsdb -i profiles.list -o T -n PROFILE_EZ -t PRIAM_profiles_database
+cd $METAPIPE_DIR
 
 >| $METAPIPE_DIR/metapipe-tmp/assembly_running
 for name in "${WORKER_HOSTS[@]}"; do
@@ -44,5 +66,3 @@ done
 cat $METAPIPE_DIR/metapipe-tmp/assembly_running
 
 echo "METAPIPE_DIR=$METAPIPE_DIR" >> $SPARK_HOME/conf/spark-env.sh
-
-# sudo kill $(ps aux | grep "spark" | awk '{print $2}')

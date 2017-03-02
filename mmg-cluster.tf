@@ -19,16 +19,8 @@ resource "occi_virtual_machine" "node" {
 	storage_size = 300
 }
 
-output "master_id" {
-	value = "${occi_virtual_machine.master.vm_id}"
-}
-
 output "master_ip" {
 	value = "${occi_virtual_machine.master.ip_address}"
-}
-
-output "node_id" {
-	value = "${join(",",occi_virtual_machine.node.*.vm_id)}"
 }
 
 output "node_ip" {

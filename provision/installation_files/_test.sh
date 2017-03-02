@@ -1,5 +1,5 @@
 
-source _init.sh
+source ~/provision/_init.sh
 
 java -jar $METAPIPE_DIR/workflow-assembly-0.1-SNAPSHOT.jar validate
 

@@ -19,6 +19,7 @@
     - iptables-services
     - sudo
     - wget
+    - gcc
 
 - name: stop cloud-init managing /etc/hosts
   lineinfile:

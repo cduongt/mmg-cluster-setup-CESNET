@@ -1,7 +1,5 @@
+source ~/provision/_init.sh
 
-METAPIPE_DIR=/export/share
-SPARK_HOME=/export/share/spark-1.6.2-bin-hadoop2.6
-export PATH=$PATH:$SPARK_HOME/bin:$SPARK_HOME/sbin
 . start-all.sh
 
 #$SPARK_HOME/bin/spark-submit \

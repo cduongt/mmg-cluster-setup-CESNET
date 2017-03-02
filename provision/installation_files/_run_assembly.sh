@@ -1,7 +1,7 @@
 
 # RUN ASSEMBLY: code to be changed when assembly is added
 
-source _init.sh
+source ~/provision/_init.sh
 
 ARG1=$1
 ARG2=$2
