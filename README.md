@@ -17,11 +17,13 @@ File structure:
 - "pouta-ansible-cluster": Folder containing Ansible playbooks
 - "provision": Folder containing installation scripts
 - "create.py": Python script creating and provisioning Metapipe environment
+- "run.py": Python script running metapipe with custom job tag
 - "destroy.py": Python script destroying Metapipe environment
 
 What it can do:
 - Create 1 master and x slave nodes with Terraform at OCCI endpoint (currently tested only in CESNET MetaCloud. Might not work at other endpoints due to different CentOS 7 images)
 - Provision all hosts with Ansible, copy necessary files to run Metapipe
+- Run Metapipe with custom job tag
 - Cleanup environment
 
 What is missing:
