@@ -1,12 +1,4 @@
-- name: Base installation
-  hosts:
-    - masters
-    - nodes
-  become: yes
-  roles:
-    - base
-
-- name: Configure common cluster
+- name: Configure common parts
   hosts:
     - masters
     - nodes
@@ -14,22 +6,9 @@
     selinux_state: "disabled"
   become: yes
   roles:
+    - base
     - cluster_common
-
-- name: Volume data directory on HDP nodes
-  hosts:
-    - masters
-    - nodes
-  become: yes
-  roles:
-    - role: lvm_storage
-
-- name: Hortonworks common cluster setup
-  hosts:
-    - masters
-    - nodes
-  become: yes
-  roles:
+    - lvm_storage
     - hortonworks_common
 
 - name: Configure master
@@ -38,15 +17,17 @@
   become: yes
   roles:
     - cluster_master
-    - nfs_server
 #    - ambari_server
+    - role: nfs_server
+      exports: "{{ nfs_shares|default([]) }}"
 
 - name: Configure nodes
   hosts:
     - nodes
   become: yes
   roles:
-    - nfs_client
+    - role: nfs_client
+      nfs_mounts: "{{ nfs_shares|default([]) }}"
 
 #- name: Ambari agents
 #  hosts:

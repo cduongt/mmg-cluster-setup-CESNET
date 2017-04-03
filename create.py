@@ -168,3 +168,15 @@ if error_code != 0:
     print('Error while getting workflow-assembly-0.1-SNAPSHOT.jar, cleaning up.', file=sys.stderr)
     subprocess.call('./destroy.py', shell=True)
     sys.exit(error_code)
+
+###########################################
+###### Prepare basic cluster config #######
+###########################################
+
+error_code = subprocess.call(
+    "ssh -o StrictHostKeyChecking=no cloud-user@" +
+    master_ip + " source provision/installation_files/_prepare.sh", shell=True)
+
+if error_code != 0:
+    print('Error while trying to prepare config.', file=sys.stderr)
+    sys.exit(error_code)

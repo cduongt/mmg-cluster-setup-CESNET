@@ -6,6 +6,8 @@
 
 - set_fact: is_swap="{{ filesystem_spec.fstype|default('') == 'swap' }}"
 
+- set_fact: format="{{ filesystem_spec.format|default(true) }}"
+
 - stat: path=lv_path
   register: stat_lv_path
 
@@ -14,7 +16,7 @@
     vg: "{{ vg_name }}"
     lv: "{{ lv_name }}"
     size: "{{ filesystem_spec.size|default('99%VG') }}"
-  when: stat_lv_path.stat.exists == False
+  when: stat_lv_path.stat.exists == False and format
 
 - name: make sure {{ filesystem_spec.name }} mount path exists
   file:
@@ -27,7 +29,7 @@
     fstype: "{{ filesystem_spec.fstype }}"
     dev: "{{ lv_path }}"
     opts: "-L {{ filesystem_spec.name }} {{ filesystem_spec.mkfs_opts|default('') }}"
-  when: not is_swap
+  when: not is_swap and format
 
 - name: mount {{ filesystem_spec.name }}
   mount:

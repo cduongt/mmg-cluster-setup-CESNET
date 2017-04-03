@@ -1,0 +1,6 @@
+---
+- name: restart nfs-server
+  service: name=nfs-server state=restarted
+
+- name: restart iptables
+  service: name=iptables state=restarted

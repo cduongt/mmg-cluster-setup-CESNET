@@ -2,13 +2,15 @@
   shell: 'swapon -s | grep -E "^/"'
   register: swap_configured
   ignore_errors: yes
+  changed_when: false
 
 - name: scan for swap on {{ lv_path }}
   command: lvdisplay {{ lv_path }}
   register: test_lv_swap
   ignore_errors: yes
+  changed_when: false
 
-- name: run mkswap on swap lv
+- name: run mkswap on {{ lv_path }}
   command: mkswap {{ lv_path }}
   when: swap_configured|failed
 

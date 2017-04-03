@@ -2,6 +2,7 @@
 import os
 import subprocess
 import sys
+import time
 
 def print_help():
     print("Correct usage of this script:")
@@ -28,22 +29,13 @@ master_ip = master_ip.split("=", 2)[1].strip()
 
 error_code = subprocess.call(
     "ssh -o StrictHostKeyChecking=no cloud-user@" +
-    master_ip + " source provision/installation_files/_prepare.sh", shell=True)
+    master_ip +
+    " nohup provision/installation_files/_run.sh func_analysis " +
+    job_tag + " > metapipe.log 2>&1 &", shell=True)
 
 if error_code != 0:
     print('Error while trying to run metapipe.', file=sys.stderr)
     sys.exit(error_code)
 
-error_code = subprocess.call(
-    "ssh -o StrictHostKeyChecking=no cloud-user@" +
-    master_ip + " source provision/installation_files/_run.sh", shell=True)
-
-if error_code != 0:
-    print('Error while trying to run metapipe.', file=sys.stderr)
-    sys.exit(error_code)
-
-master_ip = (subprocess.check_output(
-    "terraform show | grep master_ip", shell=True)).decode('ascii')
-master_ip = master_ip.split("=", 2)[1].strip()
-
+time.sleep(10)
 print('Web UI is running at ' + master_ip + ':8080')

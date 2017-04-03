@@ -5,7 +5,7 @@ resource "occi_virtual_machine" "master" {
 	name = "vm_cluster_master"
 	x509 = "/tmp/x509up_u1000"
 	init_file = "/home/cduongt/context"
-	storage_size = 500
+	storage_size = 400
 }
 
 resource "occi_virtual_machine" "node" {
@@ -16,7 +16,7 @@ resource "occi_virtual_machine" "node" {
 	x509 = "/tmp/x509up_u1000"
 	init_file = "/home/cduongt/context"
 	count = 4
-	storage_size = 300
+	storage_size = 200
 }
 
 output "master_ip" {
