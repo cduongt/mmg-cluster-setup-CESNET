@@ -1,14 +1,3 @@
-- name: nfs client
-  yum: pkg={{item}} state=present
-  with_items:
-    - nfs-utils
-
-- mount: name={{item}} src={{hostvars[groups['masters'][0]]['ansible_ssh_host']}}:{{item}} fstype=nfs state=mounted
-  with_items:
-    #- /home
-    - /data
-    - /export/share
-
 - name: open port 8081 for web UI
   lineinfile:
     line: "-A INPUT -p tcp -m tcp --dport 8081 -j ACCEPT"
@@ -23,3 +12,18 @@
 
 - name: restart iptables
   service: name=iptables state=restarted
+
+- name: make sure mount path exists
+  file:
+    path: "{{ item.directory }}"
+    state: directory
+  with_items: "{{ nfs_mounts }}"
+
+- name: mount and update fstab
+  mount:
+    name: "{{ item.directory }}"
+    src: "{{ item.server|default(hostvars[groups['masters'][0]]['ansible_ssh_host']) }}:{{ item.directory }}"
+    fstype: "nfs"
+    opts: "{{ item.mount_options|default('defaults,_netdev') }}"
+    state: mounted
+  with_items: "{{ nfs_mounts }}"

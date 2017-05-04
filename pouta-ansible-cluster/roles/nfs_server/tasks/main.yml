@@ -3,12 +3,6 @@
     name: nfs-utils
     state: present
 
-- name: NFS Shared directory
-  file: path=/var/nfs state=directory mode=0777
-
-- name: Data directory
-  file: path=/data state=directory owner=root group=root
-
 - name: start and enable rpcbind and nfs-server
   service:
     name: "{{item}}"
@@ -24,22 +18,10 @@
   register: systemctl_result
   changed_when: systemctl_result.stderr != ''
 
-- name: Export Directory
-  register: exports
-  lineinfile: dest=/etc/exports
-              regexp='^{{item}}'
-              line='{{item}}  *(rw,sync,no_subtree_check,no_root_squash)'
-              state=present
-              create=yes
-              owner=root
-              group=root
-  with_items:
-    #- /home
-    - /data
-    - /export/share
-
-- name: Create NFS table
-  command: exportfs -a
-
-- name: NFS is restarted
-  service: name=nfs state=restarted
+- name: create exports
+  lineinfile:
+    dest: /etc/exports
+    regexp: "^{{ item.directory }} "
+    line: "{{ item.directory }} {{ item.export_options | default('*(rw)') }}"
+  with_items: "{{ exports|default([]) }}"
+  notify: restart nfs-server
