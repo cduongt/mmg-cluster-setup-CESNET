@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+import os
 import re
 import socket
 import subprocess
@@ -47,6 +48,19 @@ for item in node_ip:
 ansible_hosts.close()
 
 ###########################################
+##############  Slave list  ###############
+###########################################
+
+slaves = open('slaves', 'w')
+
+for item in node_ip:
+    slaves.write(socket.gethostbyaddr(item)[0] + '\n')
+
+slaves.close()
+
+os.rename('slaves', 'provision/slaves')
+
+###########################################
 ########### Cluster vars file #############
 ###########################################
 
@@ -59,7 +73,7 @@ node_storage_size = (subprocess.check_output(
 node_storage_size = node_storage_size.split("=", 2)[1].strip()
 node_storage_size = re.sub('\x1b[^m]*m', '', node_storage_size)
 
-cluster_vars.write('cluster_name: "csc-cluster"\n\n')
+cluster_vars.write('cluster_name: "metapipe-cluster"\n\n')
 cluster_vars.write('nfs_shares:\n')
 cluster_vars.write('  - directory: /export/share\n')
 cluster_vars.write('    export_options: "*(rw)"\n\n')
@@ -78,13 +92,13 @@ cluster_vars.write('      fstype: swap\n\n')
 cluster_vars.write('    - name: hadoop\n')
 cluster_vars.write('      volume: metadata\n')
 cluster_vars.write('      mount_path: "/hadoop"\n')
-cluster_vars.write('      size: "47%VG"\n')
+cluster_vars.write('      size: "17%VG"\n')
 cluster_vars.write('      fstype: xfs\n')
 cluster_vars.write('      mkfs_opts: ""\n\n')
 cluster_vars.write('    - name: nfs_share\n')
 cluster_vars.write('      volume: metadata\n')
 cluster_vars.write('      mount_path: "/export/share"\n')
-cluster_vars.write('      size: "50%VG"\n')
+cluster_vars.write('      size: "80%VG"\n')
 cluster_vars.write('      fstype: "btrfs"\n')
 cluster_vars.write('      mount_opts: "defaults,compress=lzo"\n\n')
 cluster_vars.write('node_groups:\n')
@@ -143,32 +157,6 @@ error_code = subprocess.call(
 
 if error_code != 0:
     print('Error while setting up cluster, cleaning up.', file=sys.stderr)
-    subprocess.call('./destroy.py', shell=True)
-    sys.exit(error_code)
-
-###########################################
-######## Get metapipe dependencies ########
-###########################################
-
-error_code = subprocess.call(
-    "ssh -o StrictHostKeyChecking=no cloud-user@" + master_ip +
-    " wget --progress=bar:force " +
-    metapipe_download + metapipe_dependencies_file +
-    " -P /export/share", shell=True)
-
-if error_code != 0:
-    print('Error while getting ' + metapipe_dependencies_file + ', cleaning up.', file=sys.stderr)
-    subprocess.call('./destroy.py', shell=True)
-    sys.exit(error_code)
-
-error_code = subprocess.call(
-    "ssh -o StrictHostKeyChecking=no cloud-user@" + master_ip +
-    " wget --progress=bar:force " +
-    metapipe_download + workflow_file +
-    " -P /export/share", shell=True)
-
-if error_code != 0:
-    print('Error while getting workflow-assembly-0.1-SNAPSHOT.jar, cleaning up.', file=sys.stderr)
     subprocess.call('./destroy.py', shell=True)
     sys.exit(error_code)
 

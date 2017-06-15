@@ -21,7 +21,6 @@
     - perl-Digest-MD5
     - sudo
     - wget
-    - nfs-utils
 
 - name: stop cloud-init managing /etc/hosts
   lineinfile:

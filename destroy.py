@@ -30,3 +30,5 @@ if os.path.exists('cluster_vars.yaml'):
     os.remove('cluster_vars.yaml')
 if os.path.exists('ansible_inventory'):
     os.remove('ansible_inventory')
+if os.path.exists('provision/slaves'):
+    os.remove('provision/slaves')

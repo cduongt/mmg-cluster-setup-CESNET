@@ -21,18 +21,19 @@ if [ "$1" == "test" ]; then
     exit 1
 fi
 
+sudo chmod 777 $SW_DIR
+
 cd $SW_DIR
 
-sudo wget -nv http://downloads.lightbend.com/scala/2.10.6/scala-2.10.6.tgz
-sudo tar xf scala-2.10.6.tgz
+wget -nv http://downloads.lightbend.com/scala/2.10.6/scala-2.10.6.tgz
+tar xf scala-2.10.6.tgz
 scala -version
-sudo rm scala-2.10.6.tgz
+rm scala-2.10.6.tgz
 
-sudo wget -nv http://d3kbcqa49mib13.cloudfront.net/spark-1.6.2-bin-hadoop2.6.tgz
-sudo tar xf spark-1.6.2-bin-hadoop2.6.tgz
-sudo rm spark-1.6.2-bin-hadoop2.6.tgz
+wget -nv http://d3kbcqa49mib13.cloudfront.net/spark-1.6.2-bin-hadoop2.6.tgz
+tar xf spark-1.6.2-bin-hadoop2.6.tgz
+rm spark-1.6.2-bin-hadoop2.6.tgz
 
-sudo chmod 777 -R /export/*
 
 >| $SPARK_HOME/conf/slaves
 for name in "${WORKER_HOSTS[@]}"; do
@@ -48,6 +49,6 @@ echo "export SPARK_WORKER_INSTANCES=$EXECUTORS_PER_SLAVE" >> $SPARK_HOME/conf/sp
 echo "export SPARK_WORKER_MEMORY=$(($RAM_PER_EXECUTOR))g" >> $SPARK_HOME/conf/spark-env.sh
 
 . start-all.sh
-sudo chmod 777 -R $SW_DIR/*
+
 . stop-all.sh
 

@@ -17,6 +17,8 @@
   become: yes
   roles:
     - cluster_master
+    - squid_server
+    - cvmfs_client
 #    - ambari_server
     - role: nfs_server
       exports: "{{ nfs_shares|default([]) }}"
@@ -26,6 +28,7 @@
     - nodes
   become: yes
   roles:
+    - role: node
     - role: nfs_client
       nfs_mounts: "{{ nfs_shares|default([]) }}"
 

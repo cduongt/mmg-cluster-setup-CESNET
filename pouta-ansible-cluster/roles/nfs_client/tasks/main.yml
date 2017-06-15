@@ -1,17 +1,7 @@
-- name: open port 8081 for web UI
-  lineinfile:
-    line: "-A INPUT -p tcp -m tcp --dport 8081 -j ACCEPT"
-    dest: /etc/sysconfig/iptables
-    insertbefore: '^-A INPUT'
-
-- name: open ports for other nodes and master
-  lineinfile:
-    line: "-A INPUT -s 147.228.242.0/24 -j ACCEPT"
-    dest: /etc/sysconfig/iptables
-    insertbefore: '^-A INPUT'
-
-- name: restart iptables
-  service: name=iptables state=restarted
+- name: Install nfs utils		
+  yum:
+    name: nfs-utils
+    state: present
 
 - name: make sure mount path exists
   file:

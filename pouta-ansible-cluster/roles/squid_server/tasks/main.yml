@@ -1,0 +1,63 @@
+- name: Install squid
+  yum: pkg=squid state=present
+
+- name: Make squid folder
+  file:
+    path: /export/share/squid
+    state: directory
+    mode: 0755
+
+- name: Symlink squid cache folder
+  file:
+    src: /export/share/squid
+    dest: /var/spool/squid
+    state: link
+    force: true
+
+- name: Edit squid max_filedesc
+  lineinfile:
+    path: /etc/squid/squid.config
+    regexp: "^max_filedesc"
+    line: "max_filedesc 8192"
+    mode: 0755
+    create: yes
+
+- name: Edit squid maximum_object_size
+  lineinfile:
+    path: /etc/squid/squid.config
+    regexp: "^maximum_object_size"
+    line: "maximum_object_size 30 GB"
+
+- name: Edit squid cache_mem
+  lineinfile:
+    path: /etc/squid/squid.config
+    regexp: "^cache_mem"
+    line: "cache_mem 2048 MB"
+
+- name: Edit squid maximum_object_size_in_memory
+  lineinfile:
+    path: /etc/squid/squid.config
+    regexp: "^maximum_object_size_in_memory"
+    line: "maximum_object_size_in_memory 8 MB"
+
+- name: Edit squid cache_dir
+  lineinfile:
+    path: /etc/squid/squid.config
+    regexp: "^cache_dir"
+    line: "cache_dir ufs /var/spool/squid 100000 32 512"
+
+- name: Add repository in squid acl
+  lineinfile:
+    path: /etc/squid/squid.config
+    line: "acl cvmfs dst stoor143.meta.zcu.cz"
+
+- name: Allow http access for cvmfs
+  lineinfile:
+    path: /etc/squid/squid.config
+    line: "http_access allow cvmfs"
+
+- name: Enable squid
+  command: "{{ item }}"
+  with_items:
+    - systemctl enable squid
+    - systemctl start squid
