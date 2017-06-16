@@ -28,7 +28,8 @@
     - nodes
   become: yes
   roles:
-    - role: node
+    - node
+    - cvmfs_client
     - role: nfs_client
       nfs_mounts: "{{ nfs_shares|default([]) }}"
 

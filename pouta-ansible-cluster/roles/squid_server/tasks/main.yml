@@ -5,7 +5,7 @@
   file:
     path: /export/share/squid
     state: directory
-    mode: 0755
+    mode: 0777
 
 - name: Symlink squid cache folder
   file:
@@ -16,44 +16,49 @@
 
 - name: Edit squid max_filedesc
   lineinfile:
-    path: /etc/squid/squid.config
+    path: /etc/squid/squid.conf
     regexp: "^max_filedesc"
     line: "max_filedesc 8192"
-    mode: 0755
+    mode: 0777
     create: yes
 
 - name: Edit squid maximum_object_size
   lineinfile:
-    path: /etc/squid/squid.config
+    path: /etc/squid/squid.conf
     regexp: "^maximum_object_size"
     line: "maximum_object_size 30 GB"
 
 - name: Edit squid cache_mem
   lineinfile:
-    path: /etc/squid/squid.config
+    path: /etc/squid/squid.conf
     regexp: "^cache_mem"
     line: "cache_mem 2048 MB"
 
 - name: Edit squid maximum_object_size_in_memory
   lineinfile:
-    path: /etc/squid/squid.config
+    path: /etc/squid/squid.conf
     regexp: "^maximum_object_size_in_memory"
     line: "maximum_object_size_in_memory 8 MB"
 
 - name: Edit squid cache_dir
   lineinfile:
-    path: /etc/squid/squid.config
+    path: /etc/squid/squid.conf
     regexp: "^cache_dir"
     line: "cache_dir ufs /var/spool/squid 100000 32 512"
 
 - name: Add repository in squid acl
   lineinfile:
-    path: /etc/squid/squid.config
+    path: /etc/squid/squid.conf
     line: "acl cvmfs dst stoor143.meta.zcu.cz"
+
+- name: Add local network to allowed
+  lineinfile:
+    path: /etc/squid/squid.conf
+    line: "acl localnet src 147.228.242.0/24"
 
 - name: Allow http access for cvmfs
   lineinfile:
-    path: /etc/squid/squid.config
+    path: /etc/squid/squid.conf
     line: "http_access allow cvmfs"
 
 - name: Enable squid

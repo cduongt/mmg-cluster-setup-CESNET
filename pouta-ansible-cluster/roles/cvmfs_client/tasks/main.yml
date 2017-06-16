@@ -1,5 +1,6 @@
 - name: Add cvmfs repository
-  command: yum -y install https://ecsft.cern.ch/dist/cvmfs/cvmfs-release/cvmfs-release-latest.noarch.rpm
+  yum:
+    name: https://ecsft.cern.ch/dist/cvmfs/cvmfs-release/cvmfs-release-latest.noarch.rpm
 
 - name: Install cvmfs
   yum: pkg={{item}} state=present
@@ -14,13 +15,13 @@
   lineinfile: 
     path: /etc/cvmfs/default.local
     line: "CVMFS_REPOSITORIES=metapipe.cesnet.cz"
-    mode: 0755
+    mode: 0777
     create: yes
 
 - name: Add local squid proxy
   lineinfile: 
     path: /etc/cvmfs/default.local
-    line: "CVMFS_HTTP_PROXY=\"http://localhost:3128\""
+    line: "CVMFS_HTTP_PROXY=\"http://{{ hostvars[groups['masters'][0]]['ansible_ssh_host'] }}:3128\""
 
 - name: Download server public key
   command: wget http://stoor143.meta.zcu.cz/metapipe.cesnet.cz.pub -O /etc/cvmfs/keys/metapipe.cesnet.cz.pub
@@ -29,7 +30,7 @@
   lineinfile:
     path: /etc/cvmfs/config.d/metapipe.cesnet.cz.conf
     line: "CVMFS_SERVER_URL=http://stoor143.meta.zcu.cz/cvmfs/metapipe.cesnet.cz"
-    mode: 0755
+    mode: 0777
     create: yes
 
 - name: Add public key to repository
@@ -39,10 +40,3 @@
 
 - name: Mount repository
   command: cvmfs_config probe
-
-- name: Symlink metapipe folder
-  file:
-    src: /cvmfs/metapipe.cesnet.cz/package/dist
-    dest: /export/share/metapipe
-    state: link
-    force: true

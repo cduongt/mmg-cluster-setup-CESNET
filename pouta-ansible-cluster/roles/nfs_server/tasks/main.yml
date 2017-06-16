@@ -25,3 +25,10 @@
     line: "{{ item.directory }} {{ item.export_options | default('*(rw)') }}"
   with_items: "{{ exports|default([]) }}"
   notify: restart nfs-server
+
+- name: Symlink metapipe folder
+  file:
+    src: /cvmfs/metapipe.cesnet.cz/package/dist
+    dest: /export/share/metapipe
+    state: link
+    force: true
