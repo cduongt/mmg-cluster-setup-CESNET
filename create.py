@@ -200,7 +200,7 @@ error_code = subprocess.call(
 
 if error_code != 0:
     print('Ansible ended with error, cleaning up.', file=sys.stderr)
-    #subprocess.call('./destroy.py', shell=True)
+    subprocess.call('./destroy.py', shell=True)
     sys.exit(error_code)
 
 ###########################################
