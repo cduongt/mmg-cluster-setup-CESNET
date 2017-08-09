@@ -23,8 +23,20 @@ output "master_ip" {
 	value = "${occi_virtual_machine.master.ip_address}"
 }
 
+output "master_id" {
+	value = "${occi_virtual_machine.master.id}"
+}
+
+output "master_storage_link" {
+	value = "${occi_virtual_machine.master.storage_link}"
+}
+
 output "node_ip" {
 	value = "${join(",",occi_virtual_machine.node.*.ip_address)}"
+}
+
+output "node_id" {
+	value = "${occi_virtual_machine.node.0.id}"
 }
 
 output "master_storage_size" {
@@ -33,4 +45,12 @@ output "master_storage_size" {
 
 output "node_storage_size" {
 	value = "${occi_virtual_machine.node.0.storage_size}"
+}
+
+output "occi_endpoint" {
+	value = "${occi_virtual_machine.master.endpoint}"
+}
+
+output "proxy_file" {
+	value = "${occi_virtual_machine.master.x509}"
 }

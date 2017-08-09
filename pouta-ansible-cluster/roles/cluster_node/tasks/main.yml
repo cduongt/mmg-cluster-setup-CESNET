@@ -6,7 +6,7 @@
 
 - name: open ports for other nodes and master
   lineinfile:
-    line: "-A INPUT -s 147.228.242.0/24 -j ACCEPT"
+    line: "-A INPUT -s {{ vars[vm_group_name].network_range | default([]) }} -j ACCEPT"
     dest: /etc/sysconfig/iptables
     insertbefore: '^-A INPUT'
 

@@ -18,18 +18,24 @@
   roles:
     - cluster_master
     - squid_server
-    - cvmfs_client
 #    - ambari_server
     - role: nfs_server
       exports: "{{ nfs_shares|default([]) }}"
+
+- name: Configure cvmfs
+  hosts:
+    - masters
+    - nodes
+  become: yes
+  roles:
+    - cvmfs_client
 
 - name: Configure nodes
   hosts:
     - nodes
   become: yes
   roles:
-    - node
-    - cvmfs_client
+    - cluster_node
     - role: nfs_client
       nfs_mounts: "{{ nfs_shares|default([]) }}"
 

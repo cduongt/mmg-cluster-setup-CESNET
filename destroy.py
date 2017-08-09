@@ -32,3 +32,5 @@ if os.path.exists('ansible_inventory'):
     os.remove('ansible_inventory')
 if os.path.exists('provision/slaves'):
     os.remove('provision/slaves')
+if os.path.exists('provision/_init.sh'):
+    os.remove('provision/_init.sh')

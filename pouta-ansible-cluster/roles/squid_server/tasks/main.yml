@@ -32,13 +32,13 @@
   lineinfile:
     path: /etc/squid/squid.conf
     regexp: "^cache_mem"
-    line: "cache_mem 2048 MB"
+    line: "cache_mem {{ vars[vm_group_name].memory_squid | default([]) }} MB"
 
 - name: Edit squid maximum_object_size_in_memory
   lineinfile:
     path: /etc/squid/squid.conf
     regexp: "^maximum_object_size_in_memory"
-    line: "maximum_object_size_in_memory 8 MB"
+    line: "maximum_object_size_in_memory 16 MB"
 
 - name: Edit squid cache_dir
   lineinfile:
@@ -54,7 +54,7 @@
 - name: Add local network to allowed
   lineinfile:
     path: /etc/squid/squid.conf
-    line: "acl localnet src 147.228.242.0/24"
+    line: "acl localnet src {{ vars[vm_group_name].network_range | default([]) }}"
 
 - name: Allow http access for cvmfs
   lineinfile:
