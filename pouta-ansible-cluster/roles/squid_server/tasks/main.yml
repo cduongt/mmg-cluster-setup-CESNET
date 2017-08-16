@@ -32,7 +32,7 @@
   lineinfile:
     path: /etc/squid/squid.conf
     regexp: "^cache_mem"
-    line: "cache_mem {{ vars[vm_group_name].memory_squid | default([]) }} MB"
+    line: "cache_mem {{ vars[vm_group_name].memory_squid | default(256) }} MB"
 
 - name: Edit squid maximum_object_size_in_memory
   lineinfile:
@@ -51,10 +51,10 @@
     path: /etc/squid/squid.conf
     line: "acl cvmfs dst stoor143.meta.zcu.cz"
 
-- name: Add local network to allowed
+- name: Add list of allowed ips
   lineinfile:
     path: /etc/squid/squid.conf
-    line: "acl localnet src {{ vars[vm_group_name].network_range | default([]) }}"
+    line: "acl localnet src \"/home/cloud-user/provision/allowed\""
 
 - name: Allow http access for cvmfs
   lineinfile:

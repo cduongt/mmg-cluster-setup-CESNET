@@ -34,3 +34,5 @@ if os.path.exists('provision/slaves'):
     os.remove('provision/slaves')
 if os.path.exists('provision/_init.sh'):
     os.remove('provision/_init.sh')
+if os.path.exists('provision/allowed'):
+    os.remove('provision/allowed')

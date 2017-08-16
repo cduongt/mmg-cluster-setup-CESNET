@@ -54,25 +54,33 @@ ansible_hosts.write('ansible_ssh_user=cloud-user\n')
 ansible_hosts.write('ansible_sudo=true\n')
 ansible_hosts.write('cluster_name=metapipe-cluster\n')
 ansible_hosts.write('[masters]\n')
-ansible_hosts.write(socket.gethostbyaddr(master_ip)[0] +
+ansible_hosts.write('vm-cluster-master' +
                     ' ansible_ssh_host=' + master_ip + ' vm_group_name=master\n')
 ansible_hosts.write('[nodes]\n[nodes:children]\ndisk\n[disk]\n')
-for item in node_ip:
-    ansible_hosts.write(socket.gethostbyaddr(
-        item)[0] + ' ansible_ssh_host=' + item + ' vm_group_name=disk\n')
+for index, item in enumerate(node_ip):
+    ansible_hosts.write('vm-cluster-node-' + str(index) +
+                        ' ansible_ssh_host=' + item + ' vm_group_name=disk\n')
 
 ansible_hosts.close()
 
 ###########################################
-##############  Slave list  ###############
+###############  IP lists #################
 ###########################################
 
 slaves = open('provision/slaves', 'w')
 
 for item in node_ip:
-    slaves.write(socket.gethostbyaddr(item)[0] + '\n')
+    slaves.write(item + '\n')
 
 slaves.close()
+
+allowed_ips = open('provision/allowed', 'w')
+
+for item in node_ip:
+    allowed_ips.write(item + '\n')
+allowed_ips.write(master_ip)
+
+allowed_ips.close()
 
 ###########################################
 ########### Cluster vars file #############
@@ -89,12 +97,6 @@ node_description = get_description_json(node_id, x509, endpoint)
 
 master_cores = master_description[0]['attributes']['occi']['compute']['cores']
 master_memory = master_description[0]['attributes']['occi']['compute']['memory']
-for link in master_description[0]['links']:
-    if 'network' in link['kind']:
-        network_id = link['attributes']['occi']['core']['target']
-
-network_description = get_description_json(network_id, x509, endpoint)
-network_range = network_description[0]['attributes']['occi']['network']['address']
 
 node_cores = node_description[0]['attributes']['occi']['compute']['cores']
 node_memory = node_description[0]['attributes']['occi']['compute']['memory']
@@ -121,7 +123,6 @@ cluster_vars.write('  invetory_group: masters\n')
 cluster_vars.write('  auto_ip: yes\n')
 cluster_vars.write('  cores: ' + str(master_cores) + '\n')
 cluster_vars.write('  memory_squid: ' + str(int(round(master_memory // 2.0))) + '\n')
-cluster_vars.write('  network_range: ' + network_range + '\n')
 cluster_vars.write('  volumes:\n')
 cluster_vars.write('    - name: metadata\n')
 cluster_vars.write('      size: ' + master_storage_size + '\n')
@@ -149,7 +150,6 @@ cluster_vars.write('disk:\n')
 cluster_vars.write('  num_vms: ' + str(len(node_ip)) + '\n')
 cluster_vars.write('  cores: ' + str(node_cores) + '\n')
 cluster_vars.write('  memory: ' + str(int(node_memory)) + '\n')
-cluster_vars.write('  network_range: ' + network_range + '\n')
 cluster_vars.write('  volumes:\n')
 cluster_vars.write('    - name: datavol\n')
 cluster_vars.write('      size: ' + node_storage_size + '\n')
@@ -192,18 +192,6 @@ init.close()
 init_template.close()
 
 ###########################################
-###############  Ansible  #################
-###########################################
-
-error_code = subprocess.call(
-    "ansible-playbook -v -e @cluster_vars.yaml -i ansible_inventory pouta-ansible-cluster/playbooks/hortonworks/configure.yml", shell=True)
-
-if error_code != 0:
-    print('Ansible ended with error, cleaning up.', file=sys.stderr)
-    subprocess.call('./destroy.py', shell=True)
-    sys.exit(error_code)
-
-###########################################
 ##############  Copy files  ###############
 ###########################################
 
@@ -213,6 +201,18 @@ error_code = subprocess.call(
 
 if error_code != 0:
     print('Error while copying files, cleaning up.', file=sys.stderr)
+    subprocess.call('./destroy.py', shell=True)
+    sys.exit(error_code)
+
+###########################################
+###############  Ansible  #################
+###########################################
+
+error_code = subprocess.call(
+    "ansible-playbook -v -e @cluster_vars.yaml -i ansible_inventory pouta-ansible-cluster/playbooks/hortonworks/configure.yml", shell=True)
+
+if error_code != 0:
+    print('Ansible ended with error, cleaning up.', file=sys.stderr)
     subprocess.call('./destroy.py', shell=True)
     sys.exit(error_code)
 

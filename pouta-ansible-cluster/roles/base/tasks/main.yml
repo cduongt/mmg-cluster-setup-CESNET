@@ -78,3 +78,7 @@
 
 - name: disable tty
   command: "sed -i -e 's/Defaults    requiretty.*/ #Defaults    requiretty/g' /etc/sudoers"
+
+- name: set hostname
+  hostname:
+    name: "{{ inventory_hostname }}"
