@@ -30,8 +30,8 @@ master_ip = master_ip.split("=", 2)[1].strip()
 error_code = subprocess.call(
     "ssh -o StrictHostKeyChecking=no cloud-user@" +
     master_ip +
-    " nohup provision/installation_files/_run.sh func_analysis " +
-    job_tag + " > metapipe.log 2>&1 &", shell=True)
+    " provision/installation_files/_run.sh func_analysis " +
+    job_tag, shell=True)
 
 if error_code != 0:
     print('Error while trying to run metapipe.', file=sys.stderr)

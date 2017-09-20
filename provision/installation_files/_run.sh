@@ -8,7 +8,7 @@ sleep 2
 export JOB_TAG=$2
 
 if [ "$1" != "assembly" ]; then
-    source ~/provision/installation_files/_run_func_analysis.sh "$@"
+    nohup /bin/bash ~/provision/installation_files/_run_func_analysis.sh "$@" > /dev/null 2>&1 &
 else
-    source ~/provision/installation_files/_run_assembly.sh "${@:2}"
+    nohup /bin/bash ~/provision/installation_files/_run_assembly.sh "${@:2}" > /dev/null 2>&1 &
 fi
